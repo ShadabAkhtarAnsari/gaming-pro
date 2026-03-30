@@ -1,10 +1,28 @@
 {
+  "name": "gaming-pro",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "axios": "^1.14.0",
-    "firebase": "^12.11.0",
-    "lucide-react": "^1.7.0",
-    "react-router-dom": "^7.13.2",
-    "tailwindcss": "^4.2.2"
+    "firebase": "^10.x.x",
+    "lucide-react": "^0.x.x",
+    "react": "^18.x.x",
+    "react-dom": "^18.x.x",
+    "react-router-dom": "^6.x.x",
+    "ethers": "^6.x.x"
+  },
+  "devDependencies": {
+    "@types/react": "^18.x.x",
+    "@types/react-dom": "^18.x.x",
+    "@vitejs/plugin-react": "^4.x.x",
+    "autoprefixer": "^10.x.x",
+    "postcss": "^8.x.x",
+    "tailwindcss": "^3.x.x",
+    "vite": "^5.x.x"
   }
 }
