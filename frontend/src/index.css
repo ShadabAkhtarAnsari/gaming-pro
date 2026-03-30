@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  background-color: #050505;
+  color: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  /* Gaming Gradient Background */
+  background: radial-gradient(circle at top right, #1a103d 0%, #050505 100%);
+  min-height: 100vh;
+}
+
+/* Custom Neon Styles */
+.neon-text {
+  text-shadow: 0 0 10px #6366f1, 0 0 20px #6366f1;
+}
+
+.gaming-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
+}
+
+.gaming-card:hover {
+  border: 1px solid #6366f1;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  transform: translateY(-5px);
+}
+
+/* Hide scrollbar for clean look */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+  white-space: nowrap;
+}
