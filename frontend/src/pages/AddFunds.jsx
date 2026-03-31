@@ -43,30 +43,25 @@ const AddFunds = () => {
       showToast('Redirecting to Payment Gateway...', 'success');
       
       const orderId = `ORD-${Date.now()}`;
-      // Screenshot wali API key
-      const API_KEY = "c47f2807-512e-46e2-b739-70a0ba38d14b"; 
 
-      // NOTE: Direct fetch without proxy often gets CORS error. 
-      // This MUST be on a Backend for production.
-      const response = await fetch('https://api.coinxpay.in/api/v4/payin', {
+      // NAYA CODE: Ab hum direct CoinXpay ko nahi, apne Vercel Backend ko call kar rahe hain
+      // Notice kariye, yahan se humne API_KEY hata di hai (Security ke liye)
+      const response = await fetch('/api/create-payin', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          network: "bsc", 
-          amount: parseFloat(cryptoAmount),
-          callback_url: "https://yourdomain.com/webhook", 
+          amount_in_usdt: parseFloat(cryptoAmount),
           order_id: orderId
         })
       });
 
       const data = await response.json();
 
-      if (data.status === 'success' && data.payment_url) {
+      if (response.ok && data.status === 'success' && data.payment_url) {
         
-        // Save to Firebase
+        // Save to Firebase (Ye wahi rahega)
         await setDoc(doc(db, "deposits", orderId), {
           uid: user.uid,
           orderId: orderId,
@@ -77,18 +72,17 @@ const AddFunds = () => {
           createdAt: new Date()
         });
 
-        // Redirect user
+        // Redirect user to payment page
         window.location.href = data.payment_url;
 
       } else {
-        showToast(data.message || 'Gateway Rejected Request', 'error');
+        showToast(data.message || data.error || 'Gateway Rejected Request', 'error');
         setLoading(false);
       }
 
     } catch (error) {
-      console.error("Coinxpay Error:", error);
-      // Browser's natural CORS error or network error
-      showToast('CORS Blocked! API requires Backend server.', 'error');
+      console.error("Payment routing error:", error);
+      showToast('Something went wrong connecting to the server.', 'error');
       setLoading(false);
     }
   };
