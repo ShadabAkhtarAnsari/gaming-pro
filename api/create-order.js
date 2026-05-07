@@ -10,6 +10,13 @@ export default async function handler(req, res) {
   formData.append('amount', amountINR);
   formData.append('order_id', orderId);
 
+  // 👇 NAYI LINES: Gateway ko khush karne ke liye Dummy Details 👇
+  formData.append('customer_name', 'Pro Gamer');
+  formData.append('customer_email', 'user@gamingpro.com');
+  formData.append('customer_mobile', '9999999999');
+  // (Dhyan dein: Agar aapke API documentation mein 'customer_email' ki jagah 
+  // sirf 'email' ya 'mobile' likha hai, toh naam wahi rakhiyega).
+
   try {
     // 👇 Yahan check kariye ki URL ekdum 100% sahi hai ya nahi 👇
     const GATEWAY_URL = 'https://www.paypg.in/api/create-order'; 
