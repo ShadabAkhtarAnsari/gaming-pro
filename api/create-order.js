@@ -19,12 +19,15 @@ export default async function handler(req, res) {
 
   try {
     // 👇 Yahan check kariye ki URL ekdum 100% sahi hai ya nahi 👇
+    // 👇 YAHAN APNA ASLI API URL DAALNA MAT BHOOLNA 👇
     const GATEWAY_URL = 'https://www.paypg.in/api/create-order'; 
 
     const response = await fetch(GATEWAY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json', // Gateway ko batana ki JSON bhejo
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' // Bot-blocker bypass
       },
       body: formData.toString()
     });
