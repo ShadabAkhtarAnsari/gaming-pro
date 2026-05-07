@@ -5,18 +5,13 @@ export default async function handler(req, res) {
 
   const { amountINR, orderId } = req.body;
 
-  // IMPORTANT: URLSearchParams 'application/x-www-form-urlencoded' format banata hai
   const formData = new URLSearchParams();
-  
-  // Yahan API document ke hisaab se payload keys daalein. (Jaise niche example hai)
-  formData.append('api_token', process.env.PAYMENT_GATEWAY_TOKEN); // Vercel env se aayega
+  formData.append('api_token', process.env.PAYMENT_GATEWAY_TOKEN);
   formData.append('amount', amountINR);
   formData.append('order_id', orderId);
-  // Agar API document mein customer email/phone maanga hai, toh yahan add karein:
-  // formData.append('customer_mobile', '9876543210'); 
 
   try {
-    // 👇 YAHAN APNE NAYE GATEWAY KA ASLI CREATE ORDER URL DAALEIN 👇
+    // 👇 Yahan check kariye ki URL ekdum 100% sahi hai ya nahi 👇
     const GATEWAY_URL = 'https://www.paypg.in/api/create-order'; 
 
     const response = await fetch(GATEWAY_URL, {
@@ -27,10 +22,22 @@ export default async function handler(req, res) {
       body: formData.toString()
     });
 
-    const data = await response.json();
+    // Pehle raw text mein response padhenge taaki error aaye toh crash na ho
+    const rawText = await response.text();
     
-    // Frontend ko data wapas bhej do
-    res.status(200).json(data);
+    // VERCEL LOGS KE LIYE: Yahan hum asli jawab print kar rahe hain
+    console.log("Raw Gateway Response:", rawText);
+
+    try {
+      // Ab isko JSON banane ki koshish karenge
+      const data = JSON.parse(rawText);
+      res.status(200).json(data);
+    } catch (parseError) {
+      // Agar JSON nahi hai, toh humein exactly pata chal jayega
+      console.error("Failed to parse JSON. Gateway sent this instead:", rawText);
+      res.status(500).json({ status: false, message: 'Gateway sent invalid data. Check Vercel logs.' });
+    }
+
   } catch (error) {
     console.error("Backend Gateway Error:", error);
     res.status(500).json({ status: false, message: 'Server connection failed' });
