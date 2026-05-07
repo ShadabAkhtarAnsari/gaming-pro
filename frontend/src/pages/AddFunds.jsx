@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle, Bitcoin, Zap, ShieldCheck, Activity } from 'lucide-react';
-// Firebase logic (Same rahegi)
+import { ArrowLeft, CheckCircle2, AlertCircle, Bitcoin, Zap, ShieldCheck, Activity, Lock } from 'lucide-react';
+// Firebase logic
 import { auth, db } from '../firebase'; 
 import { doc, setDoc } from 'firebase/firestore'; 
 
@@ -21,13 +21,13 @@ const AddFunds = () => {
   const exchangeRate = 88; 
   const cryptoAmount = amount ? (amount / exchangeRate).toFixed(2) : 0;
 
-  // --- COINXPAY API FUNCTION (CORS Proxy removed as it causes errors often) ---
-  const handleCoinxpayPayment = async (e) => {
+  // --- NEW PAYMENT GATEWAY LOGIC ---
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     
-    // Minimum 3 USDT check
-    if (!amount || cryptoAmount < 3) {
-      showToast(`Minimum deposit is 3 USDT (₹${3 * exchangeRate})`, 'error');
+    // Minimum 50 INR check
+    if (!amount || amount < 50) {
+      showToast('Minimum deposit is ₹50', 'error');
       return;
     }
 
@@ -40,43 +40,43 @@ const AddFunds = () => {
     setLoading(true);
 
     try {
-      showToast('Redirecting to Payment Gateway...', 'success');
+      showToast('Connecting to Secure Gateway...', 'success');
       
-      const orderId = `ORD-${Date.now()}`;
+      const orderId = `ORD${Date.now()}`;
 
-      // NAYA CODE: Ab hum direct CoinXpay ko nahi, apne Vercel Backend ko call kar rahe hain
-      // Notice kariye, yahan se humne API_KEY hata di hai (Security ke liye)
-      const response = await fetch('/api/create-payin', {
+      // Naye Vercel Backend ko call kar rahe hain
+      const response = await fetch('/api/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          amount_in_usdt: parseFloat(cryptoAmount),
-          order_id: orderId
+          amountINR: Number(amount),
+          orderId: orderId
         })
       });
 
       const data = await response.json();
 
-      if (response.ok && data.status === 'success' && data.payment_url) {
+      // Naye Gateway ke Success Response structure ke hisaab se:
+      if (data.status === true && data.result && data.result.payment_url) {
         
-        // Save to Firebase (Ye wahi rahega)
+        // Save to Firebase (Order ko database mein likh do)
         await setDoc(doc(db, "deposits", orderId), {
           uid: user.uid,
           orderId: orderId,
           amountINR: Number(amount),
-          amountUSDT: parseFloat(cryptoAmount),
-          network: "bsc",
+          amountUSDT: parseFloat(cryptoAmount), // Record keeping ke liye USDT bhi save kar diya
           status: "pending",
           createdAt: new Date()
         });
 
-        // Redirect user to payment page
-        window.location.href = data.payment_url;
+        // Seedha Payment Page par bhej do
+        window.location.href = data.result.payment_url;
 
       } else {
-        showToast(data.message || data.error || 'Gateway Rejected Request', 'error');
+        // Agar status "false" aaya ya API ne koi error message diya
+        showToast(data.message || 'Payment Gateway rejected the request.', 'error');
         setLoading(false);
       }
 
@@ -123,7 +123,7 @@ const AddFunds = () => {
         </div>
 
         {/* PAYMENT BOX (PREMIUM UI) */}
-        <form onSubmit={handleCoinxpayPayment} className="space-y-6" noValidate>
+        <form onSubmit={handlePaymentSubmit} className="space-y-6" noValidate>
           
           <div className="gaming-card p-8 rounded-[2rem] border border-white/5 bg-gradient-to-b from-white/5 to-transparent relative overflow-hidden shadow-[0_0_60px_rgba(99,102,241,0.1)]">
             {/* Background Icon Watermark */}
@@ -153,26 +153,26 @@ const AddFunds = () => {
             </div>
             
             <p className="text-[9px] text-center text-gray-500 mt-5 font-bold uppercase tracking-widest flex items-center justify-center gap-2 relative z-10">
-              <ShieldCheck size={12} className="text-green-500"/> Instant delivery via BSC (BNB Chain) Network
+              <ShieldCheck size={12} className="text-green-500"/> Instant delivery via Auto Network
             </p>
           </div>
 
           <button 
             type="submit" 
-            disabled={loading || cryptoAmount < 3}
+            disabled={loading || amount < 50}
             // Advanced hover and active effects
             className="w-full bg-indigo-600 text-white font-black uppercase tracking-[0.2em] py-5 rounded-2xl hover:bg-indigo-500 active:scale-[0.98] transition-all duration-300 shadow-[0_20px_50px_rgba(79,70,229,0.3)] disabled:opacity-30 disabled:grayscale disabled:pointer-events-none flex justify-center items-center gap-2"
           >
             {loading ? 'Connecting Gateway...' : <><Activity size={18} /> Proceed to Checkout</>}
           </button>
           
-          <p className="text-center text-[10px] text-gray-500 uppercase tracking-widest font-bold">Minimum deposit: 3 USDT (Fee 1%) • Secure Checkout</p>
+          <p className="text-center text-[10px] text-gray-500 uppercase tracking-widest font-bold">Minimum deposit: ₹50 • Secure Checkout</p>
         </form>
 
         {/* SUPPORTED NETWORKS BANNER */}
         <div className="mt-12 gaming-card p-5 rounded-xl border border-white/5 text-center flex flex-col items-center">
-          <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-4 block">Powered By</label>
-          <img src="https://my.coinxpay.in/logo.png" className="h-6" alt="coinxpay" />
+          <Lock size={24} className="text-gray-500 mb-2" />
+          <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest block">100% Secure Payment Gateway</label>
         </div>
 
       </div>
